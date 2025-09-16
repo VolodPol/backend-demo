@@ -47,6 +47,19 @@ app.get('/api/persons/:id', (req, res) => {
     res.json(queried);
 });
 
+app.delete('/api/persons/:id', (req, res) => {
+    let id = req.params.id;
+    let index = persons.findIndex(p => p.id === id);
+
+    if (index === -1) {
+        res.statusMessage = `There is no persons with id = ${id}`;
+        return res.status(404).end();
+    }
+
+    persons = persons.toSpliced(index, 1);
+    res.status(204).end();
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
