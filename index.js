@@ -1,4 +1,4 @@
-let notes = [
+let persons = [
     {
         "id": "1",
         "name": "Arto Hellas",
@@ -29,7 +29,12 @@ const PORT = 8090;
 
 
 app.get('/api/persons', (req, resp) => {
-    resp.json(notes);
+    resp.json(persons);
+});
+
+app.get('/info', (req, res) => {
+    let html = `<div><div>Phonebook has info for ${persons.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
+    res.send(html);
 });
 
 app.listen(PORT, () => {
