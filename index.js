@@ -28,13 +28,23 @@ const PORT = 8090;
 
 
 
+app.get('/info', (req, res) => {
+    let html = `<div><div>Phonebook has info for ${persons.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
+    res.send(html);
+});
+
 app.get('/api/persons', (req, resp) => {
     resp.json(persons);
 });
 
-app.get('/info', (req, res) => {
-    let html = `<div><div>Phonebook has info for ${persons.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
-    res.send(html);
+app.get('/api/persons/:id', (req, res) => {
+    let id = req.params.id;
+    const queried = persons.find(p => p.id === id);
+    if (!queried) {
+        res.statusMessage = `There is no persons with id = ${id}`;
+        res.status(404).end();
+    }
+    res.json(queried);
 });
 
 app.listen(PORT, () => {
