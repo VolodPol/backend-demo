@@ -45,11 +45,20 @@ app.delete('/api/persons/:id', (req, res) => {
 app.post('/api/persons', (req, res) => {
     const body = req.body;
 
-    if (!body.name || !body['number']) {
+    if (Object.keys(body).length > 2)
+        return res.status(400).json({
+            error: 'Not correct body format'
+        });
+
+    if (!body.name || !body['number'])
         return res.status(400).json({
             error: 'Full data is not provided'
         });
-    }
+
+    if (data.some(it => it.name === body.name))
+        return res.status(400).json({
+            error: 'name must be unique'
+        });
 
     const person = {
         id: supplyId().toString(),
