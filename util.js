@@ -1,0 +1,1 @@
+export const supplyId = () => Math.floor(Math.random() * 1_000);

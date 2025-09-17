@@ -1,32 +1,14 @@
-let persons = [
-    {
-        "id": "1",
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": "2",
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": "3",
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": "4",
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-];
+import persons from "./persons.js";
+import { supplyId } from "./util.js";
+import express from "express";
 
-const express = require('express');
+
 const app = express();
-
+app.use(express.json());
 const PORT = 8090;
 
 
+let data = persons;
 
 app.get('/info', (req, res) => {
     let html = `<div><div>Phonebook has info for ${persons.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
@@ -34,12 +16,12 @@ app.get('/info', (req, res) => {
 });
 
 app.get('/api/persons', (req, resp) => {
-    resp.json(persons);
+    resp.json(data);
 });
 
 app.get('/api/persons/:id', (req, res) => {
     let id = req.params.id;
-    const queried = persons.find(p => p.id === id);
+    const queried = data.find(p => p.id === id);
     if (!queried) {
         res.statusMessage = `There is no persons with id = ${id}`;
         res.status(404).end();
@@ -56,8 +38,26 @@ app.delete('/api/persons/:id', (req, res) => {
         return res.status(404).end();
     }
 
-    persons = persons.toSpliced(index, 1);
+    data = data.toSpliced(index, 1);
     res.status(204).end();
+});
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body;
+
+    if (!body.name || !body['number']) {
+        return res.status(400).json({
+            error: 'Full data is not provided'
+        });
+    }
+
+    const person = {
+        id: supplyId().toString(),
+        ...body
+    };
+
+    data = data.concat(person);
+    res.json(person);
 });
 
 app.listen(PORT, () => {
