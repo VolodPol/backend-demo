@@ -4,10 +4,25 @@ import express from "express";
 import morgan from "morgan";
 
 
+const configureLogging = (app) => {
+    morgan.token('resp', (req,  _) => JSON.stringify(req.body));
+    app.use(morgan((tokens, req, res) => {
+        return [
+            tokens.method(req, res),
+            tokens.url(req, res),
+            tokens.status(req, res),
+            tokens.res(req, res, 'content-length'), '-',
+            tokens['response-time'](req, res), 'ms',
+            tokens['resp'](req)
+        ].join(' ');
+    }));
+};
+
+
 const app = express();
-app.use(express.json());
-app.use(morgan('tiny'));
 const PORT = 8090;
+app.use(express.json());
+configureLogging(app);
 
 
 let data = persons;
