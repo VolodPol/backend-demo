@@ -30,7 +30,7 @@ configureLogging(app);
 let data = persons;
 
 app.get('/info', (req, res) => {
-    let html = `<div><div>Phonebook has info for ${persons.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
+    let html = `<div><div>Phonebook has info for ${data.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
     res.send(html);
 });
 
@@ -50,7 +50,7 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.delete('/api/persons/:id', (req, res) => {
     let id = req.params.id;
-    let index = persons.findIndex(p => p.id === id);
+    let index = data.findIndex(p => p.id === id);
 
     if (index === -1) {
         res.statusMessage = `There is no persons with id = ${id}`;
