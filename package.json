@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "demo",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
@@ -11,6 +12,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^5.1.0"
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "morgan": "^1.10.1"
   }
 }
