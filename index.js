@@ -21,7 +21,7 @@ const configureLogging = (app) => {
 
 
 const app = express();
-const PORT = 8090;
+const PORT = process.env.PORT || 8090;
 app.use(express.json());
 app.use(cors({ origin: 'http://localhost:5173' }));
 configureLogging(app);
