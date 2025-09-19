@@ -2,7 +2,6 @@ import persons from "./persons.js";
 import { supplyId } from "./util.js";
 import express from "express";
 import morgan from "morgan";
-import cors from "cors";
 
 
 const configureLogging = (app) => {
@@ -23,7 +22,7 @@ const configureLogging = (app) => {
 const app = express();
 const PORT = process.env.PORT || 8090;
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(express.static('dist'));
 configureLogging(app);
 
 
