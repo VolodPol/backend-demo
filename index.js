@@ -1,7 +1,7 @@
-import persons from "./persons.js";
-import { supplyId } from "./util.js";
 import express from "express";
 import morgan from "morgan";
+import Person from "./models/person.js";
+import persons from "./persons.js";
 
 
 const configureLogging = (app) => {
@@ -34,7 +34,9 @@ app.get('/info', (req, res) => {
 });
 
 app.get('/api/persons', (req, resp) => {
-    resp.json(data);
+    Person.find({}).then(found => {
+        resp.json(found);
+    });
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -73,18 +75,21 @@ app.post('/api/persons', (req, res) => {
             error: 'Full data is not provided'
         });
 
-    if (data.some(it => it.name === body.name))
-        return res.status(400).json({
-            error: 'name must be unique'
+    Person.exists({ name: body.name })
+        .then(exists => {
+            if (exists)
+                return res.status(400).json({
+                    error: 'name must be unique'
+                });
+
+            const person = Person({
+                ...body
+            });
+
+            person.save().then(saved => {
+                res.json(saved);
+            });
         });
-
-    const person = {
-        id: supplyId().toString(),
-        ...body
-    };
-
-    data = data.concat(person);
-    res.json(person);
 });
 
 app.listen(PORT, () => {
