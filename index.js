@@ -1,22 +1,7 @@
 import express from "express";
-import morgan from "morgan";
 import Person from "./models/person.js";
-import persons from "./persons.js";
-
-
-const configureLogger = () => {
-    morgan.token('resp', (req,  _) => JSON.stringify(req.body));
-    return morgan((tokens, req, res) => {
-        return [
-            tokens.method(req, res),
-            tokens.url(req, res),
-            tokens.status(req, res),
-            tokens.res(req, res, 'content-length'), '-',
-            tokens['response-time'](req, res), 'ms',
-            tokens['resp'](req)
-        ].join(' ');
-    });
-};
+import { configureLogger } from "./logger/logger.js";
+import { errorHandler, ERRORS } from "./errors/handler.js";
 
 
 const app = express();
@@ -25,28 +10,28 @@ app.use(express.json());
 app.use(express.static('dist'));
 app.use(configureLogger());
 
-
-let data = persons;
-
-app.get('/info', (req, res) => {
-    let html = `<div><div>Phonebook has info for ${data.length} people</div> <div>${new Date().toUTCString()}</div></div>`;
-    res.send(html);
+app.get('/info', (req, res, next) => {
+    Person.countDocuments({})
+        .then(count => {
+            res.send(`<div><div>Phonebook has info for ${count} people</div> <div>${new Date().toUTCString()}</div></div>`);
+        }).catch(error => next(error));
 });
 
-app.get('/api/persons', (req, resp) => {
+app.get('/api/persons', (req, resp, next) => {
     Person.find({}).then(found => {
         resp.json(found);
-    });
+    }).catch(error => next(error));
 });
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     const id = req.params.id;
-    const queried = data.find(p => p.id === id);
-    if (!queried) {
-        res.statusMessage = `There is no persons with id = ${id}`;
-        res.status(404).end();
-    }
-    res.json(queried);
+    Person.findById(id, null, {})
+        .then(found => {
+            if (found)
+                return res.json(found);
+
+            next({ name: ERRORS.NOT_FOUND });
+        }).catch(error => next(error));
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -54,32 +39,32 @@ app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndDelete(id, {})
         .then(found => {
             if (!found) {
-                next({ name: "NotFound" });
+                next({ name: ERRORS.NOT_FOUND });
                 return;
             }
             res.status(204).end();
         }).catch(error => next(error));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
-    if (Object.keys(body).length > 2)
-        return res.status(400).json({
-            error: 'Not correct body format'
-        });
+    if (Object.keys(body).length > 2) {
+        next({ name: ERRORS.INCORRECT_BODY });
+        return;
+    }
 
-    if (!body.name || !body['number'])
-        return res.status(400).json({
-            error: 'Full data is not provided'
-        });
+    if (!body.name || !body['number']) {
+        next({ name: ERRORS.PARTIAL_PAYLOAD });
+        return;
+    }
 
     Person.exists({ name: body.name })
         .then(exists => {
-            if (exists)
-                return res.status(400).json({
-                    error: 'name must be unique'
-                });
+            if (exists) {
+                next({ name: ERRORS.NOT_UNIQUE });
+                return;
+            }
 
             const person = Person({
                 ...body
@@ -87,8 +72,9 @@ app.post('/api/persons', (req, res) => {
 
             person.save().then(saved => {
                 res.json(saved);
-            });
-        });
+            }).catch(error => next(error));
+
+        }).catch(error => next(error));
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -96,7 +82,7 @@ app.put('/api/persons/:id', (req, res, next) => {
     Person.findById(id, null, {})
         .then(found => {
             if (!found) {
-                next({ name: 'NotFound' });
+                next({ name: ERRORS.NOT_FOUND });
                 return;
             }
             const { number } = req.body;
@@ -104,21 +90,9 @@ app.put('/api/persons/:id', (req, res, next) => {
 
             return found.save().then(updated => {
                 res.json(updated);
-            });
+            }).catch(error => next(error));
         }).catch(error => next(error));
 })
-
-const errorHandler = (error, request, response, next) => {
-    if (error.name === 'NotFound') {
-        const notFoundMsg = 'The person is not found!';
-        console.log(notFoundMsg);
-        return response.status(404).json(
-            { error: notFoundMsg }
-        );
-    }
-
-    next(error);
-};
 
 app.use(errorHandler);
 
