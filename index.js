@@ -50,16 +50,14 @@ app.get('/api/persons/:id', (req, res) => {
 });
 
 app.delete('/api/persons/:id', (req, res) => {
-    let id = req.params.id;
-    let index = data.findIndex(p => p.id === id);
-
-    if (index === -1) {
-        res.statusMessage = `There is no persons with id = ${id}`;
-        return res.status(404).end();
-    }
-
-    data = data.toSpliced(index, 1);
-    res.status(204).end();
+    const id = req.params.id;
+    Person.findByIdAndDelete(id, {})
+        .then(found => {
+            if (!found) {
+                return res.status(404).end();
+            }
+            res.status(204).end();
+        });
 });
 
 app.post('/api/persons', (req, res) => {
