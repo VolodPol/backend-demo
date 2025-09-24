@@ -91,6 +91,23 @@ app.post('/api/persons', (req, res) => {
         });
 });
 
+app.put('/api/persons/:id', (req, res, next) => {
+    const id = req.params.id;
+    Person.findById(id, null, {})
+        .then(found => {
+            if (!found) {
+                next({ name: 'NotFound' });
+                return;
+            }
+            const { number } = req.body;
+            found.number = number;
+
+            return found.save().then(updated => {
+                res.json(updated);
+            });
+        }).catch(error => next(error));
+})
+
 const errorHandler = (error, request, response, next) => {
     if (error.name === 'NotFound') {
         const notFoundMsg = 'The person is not found!';
