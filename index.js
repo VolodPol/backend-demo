@@ -4,9 +4,9 @@ import Person from "./models/person.js";
 import persons from "./persons.js";
 
 
-const configureLogging = (app) => {
+const configureLogger = () => {
     morgan.token('resp', (req,  _) => JSON.stringify(req.body));
-    app.use(morgan((tokens, req, res) => {
+    return morgan((tokens, req, res) => {
         return [
             tokens.method(req, res),
             tokens.url(req, res),
@@ -15,7 +15,7 @@ const configureLogging = (app) => {
             tokens['response-time'](req, res), 'ms',
             tokens['resp'](req)
         ].join(' ');
-    }));
+    });
 };
 
 
@@ -23,7 +23,7 @@ const app = express();
 const PORT = process.env.PORT || 8090;
 app.use(express.json());
 app.use(express.static('dist'));
-configureLogging(app);
+app.use(configureLogger());
 
 
 let data = persons;
@@ -40,7 +40,7 @@ app.get('/api/persons', (req, resp) => {
 });
 
 app.get('/api/persons/:id', (req, res) => {
-    let id = req.params.id;
+    const id = req.params.id;
     const queried = data.find(p => p.id === id);
     if (!queried) {
         res.statusMessage = `There is no persons with id = ${id}`;
@@ -49,15 +49,16 @@ app.get('/api/persons/:id', (req, res) => {
     res.json(queried);
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
     const id = req.params.id;
     Person.findByIdAndDelete(id, {})
         .then(found => {
             if (!found) {
-                return res.status(404).end();
+                next({ name: "NotFound" });
+                return;
             }
             res.status(204).end();
-        });
+        }).catch(error => next(error));
 });
 
 app.post('/api/persons', (req, res) => {
@@ -89,6 +90,20 @@ app.post('/api/persons', (req, res) => {
             });
         });
 });
+
+const errorHandler = (error, request, response, next) => {
+    if (error.name === 'NotFound') {
+        const notFoundMsg = 'The person is not found!';
+        console.log(notFoundMsg);
+        return response.status(404).json(
+            { error: notFoundMsg }
+        );
+    }
+
+    next(error);
+};
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
