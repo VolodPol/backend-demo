@@ -27,6 +27,8 @@ export const errorHandler = (error, request, response, next) => {
             return reply(400, 'Full data is not provided');
         case NOT_UNIQUE:
             return reply(400, 'Name must be unique');
+        case 'ValidationError':
+            return reply(400, error.message);
     }
 
     next(error);
