@@ -20,7 +20,16 @@ const personSchema = new mongoose.Schema({
         type: String,
         minLength: 3
     },
-    number: String,
+    number: {
+        type: String,
+        validate: {
+            "validator": (value) => {
+                return /\d?\d{2}-\d+/.test(value);
+            },
+            message: it => `The number ${it.value} has incorrect format. It should have 2-3 digits before a dash and more than one after the dash.`
+        },
+        minLength: 9
+    },
 });
 personSchema.set('toJSON', {
     transform: (document, returnedObject) => {
