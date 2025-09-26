@@ -1,7 +1,7 @@
-import express from "express";
-import Person from "./models/person.js";
-import { configureLogger } from "./logger/logger.js";
-import { errorHandler, ERRORS } from "./errors/handler.js";
+import express from 'express';
+import Person from './models/person.js';
+import { configureLogger } from './logger/logger.js';
+import { errorHandler, ERRORS } from './errors/handler.js';
 
 
 const app = express();

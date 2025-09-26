@@ -1,4 +1,4 @@
-import morgan from "morgan";
+import morgan from 'morgan';
 
 export const configureLogger = () => {
     morgan.token('resp', (req,  _) => JSON.stringify(req.body));

@@ -9,7 +9,7 @@ export const ERRORS = Object.freeze({
 
 export const errorHandler = (error, request, response, next) => {
     const errorName = error.name;
-    const {NOT_FOUND, INCORRECT_BODY, PARTIAL_PAYLOAD, NOT_UNIQUE} = ERRORS;
+    const { NOT_FOUND, INCORRECT_BODY, PARTIAL_PAYLOAD, NOT_UNIQUE } = ERRORS;
 
     const reply = (code, message) => {
         console.log(message);
